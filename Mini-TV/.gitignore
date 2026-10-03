@@ -1,0 +1,20 @@
+# Build outputs
+build/
+**/build/
+*.apk
+*.ap_
+*.aab
+
+# Gradle / local
+.gradle/
+local.properties
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS / signing
+.DS_Store
+*.jks
+*.keystore

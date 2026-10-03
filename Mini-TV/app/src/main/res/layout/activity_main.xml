@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black">
+
+    <WebView
+        android:id="@+id/webview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:focusable="true"
+        android:focusableInTouchMode="true" />
+
+    <!-- HTML5 fullscreen video goes here -->
+    <FrameLayout
+        android:id="@+id/fullscreen_container"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/black"
+        android:visibility="gone" />
+
+    <!-- Keypad panel -->
+    <LinearLayout
+        android:id="@+id/keypad_panel"
+        android:layout_width="198dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/panel_bg"
+        android:clickable="true"
+        android:orientation="vertical"
+        android:padding="7dp"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="26dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical|start"
+                android:layout_marginStart="6dp"
+                android:text="@string/app_name"
+                android:textColor="@color/text_dim"
+                android:textSize="12sp" />
+
+            <TextView
+                android:id="@+id/btn_info"
+                android:layout_width="30dp"
+                android:layout_height="26dp"
+                android:layout_gravity="end|center_vertical"
+                android:background="@drawable/key_bg"
+                android:contentDescription="@string/about_desc"
+                android:gravity="center"
+                android:text="ⓘ"
+                android:textColor="@color/white"
+                android:textSize="16sp" />
+        </FrameLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/key_1" style="@style/PadKey" android:text="1" />
+            <Button android:id="@+id/key_2" style="@style/PadKey" android:text="2" />
+            <Button android:id="@+id/key_3" style="@style/PadKey" android:text="3" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/key_4" style="@style/PadKey" android:text="4" />
+            <Button android:id="@+id/key_5" style="@style/PadKey" android:text="5" />
+            <Button android:id="@+id/key_6" style="@style/PadKey" android:text="6" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/key_7" style="@style/PadKey" android:text="7" />
+            <Button android:id="@+id/key_8" style="@style/PadKey" android:text="8" />
+            <Button android:id="@+id/key_9" style="@style/PadKey" android:text="9" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/key_close" style="@style/PadKey" android:text="✕" android:contentDescription="Close keypad" />
+            <Button android:id="@+id/key_0" style="@style/PadKey" android:text="0" />
+            <Button android:id="@+id/key_ok" style="@style/PadKey" android:text="OK" android:textSize="15sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+            <Button android:id="@+id/key_ch_down" style="@style/PadKey" android:text="CH ▼" android:textSize="14sp" android:contentDescription="Channel down" />
+            <Button android:id="@+id/key_ch_up" style="@style/PadKey" android:text="CH ▲" android:textSize="14sp" android:contentDescription="Channel up" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Draggable floating button (positioned in code) -->
+    <ImageView
+        android:id="@+id/fab"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/fab_bg"
+        android:contentDescription="@string/keypad_button_desc"
+        android:elevation="6dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_keypad" />
+</FrameLayout>

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Phone TV</string>
+    <string name="about_title">About Phone TV</string>
+    <string name="keypad_button_desc">Open keypad</string>
+    <string name="about_desc">About</string>
+    <string name="tv_url">https://jor-teron.github.io/sites/tv/</string>
+    <string name="repo_url">https://github.com/jor-teron/android-apps</string>
+    <string name="about_howto">How to use the keypad:\n\n• Tap the small round button to open the keypad. Drag it anywhere on the screen; its position is remembered.\n• 0–9: type a channel number (the TV page switches after a short pause).\n• CH ▲ / CH ▼: move up / down in the channel list.\n• OK: play the highlighted item.\n• ✕: close the keypad. It also closes by itself after a few seconds.\n• ⓘ: opens this About page.\n• Phone Back key: closes the keypad, then goes back in the page, then exits.\n\nThe screen follows how you hold the phone (portrait or landscape), even when rotation lock is on.</string>
+</resources>
