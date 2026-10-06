@@ -12,6 +12,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.view.DisplayCutout;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,6 +43,8 @@ public class MainActivity extends Activity {
     private static final String PREF_FAB_X = "fab_x_frac";
     private static final String PREF_FAB_Y = "fab_y_frac";
     private static final long PANEL_AUTO_HIDE_MS = 5000;
+    private static final float PORTRAIT_PANEL_HEIGHT_FRAC = 0.40f;
+    private static final float LANDSCAPE_PANEL_WIDTH_FRAC = 1f / 3f;
 
     private FrameLayout root;
     private WebView webView;
@@ -59,6 +63,8 @@ public class MainActivity extends Activity {
     // maps sensibly between portrait and landscape.
     private float fabXFrac = 1f;
     private float fabYFrac = 0.35f;
+    // Landscape: which edge the keypad docks to (chosen from the button's side when opened).
+    private boolean panelOnLeft = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +89,7 @@ public class MainActivity extends Activity {
         root.addOnLayoutChangeListener((v, l, t, r, b, ol, ot, or, ob) -> {
             if (r - l != or - ol || b - t != ob - ot) {
                 applyFabPosition();
+                if (isKeypadVisible()) layoutKeypad();
             }
         });
 
@@ -287,7 +294,7 @@ public class MainActivity extends Activity {
         findViewById(R.id.key_ch_up).setOnClickListener(v -> sendKey(KeyEvent.KEYCODE_DPAD_UP));
         findViewById(R.id.key_ch_down).setOnClickListener(v -> sendKey(KeyEvent.KEYCODE_DPAD_DOWN));
         findViewById(R.id.key_ok).setOnClickListener(v -> sendKey(KeyEvent.KEYCODE_ENTER));
-        findViewById(R.id.key_close).setOnClickListener(v -> hideKeypad());
+        findViewById(R.id.key_cancel).setOnClickListener(v -> hideKeypad());
         findViewById(R.id.btn_info).setOnClickListener(v -> {
             hideKeypad();
             startActivity(new Intent(this, AboutActivity.class));
@@ -320,15 +327,67 @@ public class MainActivity extends Activity {
     }
 
     private void showKeypad() {
+        // Landscape side = whichever half of the screen the floating button is on.
+        float fabCenterX = fab.getX() + fab.getWidth() / 2f;
+        panelOnLeft = fabCenterX < root.getWidth() / 2f;
+        layoutKeypad();
         keypadPanel.setVisibility(View.VISIBLE);
         keypadPanel.bringToFront();
-        fab.bringToFront();
+        // The button would cover keys in the docked panel; hide it while the keypad is open.
+        fab.setVisibility(View.GONE);
         bumpAutoHide();
     }
 
     private void hideKeypad() {
         handler.removeCallbacks(hidePanelRunnable);
         keypadPanel.setVisibility(View.GONE);
+        fab.setVisibility(View.VISIBLE);
+        fab.bringToFront();
+    }
+
+    /**
+     * Portrait: dial-pad docked at the bottom, full width, ~40% of the height.
+     * Landscape: docked to the left/right edge, full height, ~1/3 of the width.
+     */
+    private void layoutKeypad() {
+        int w = root.getWidth();
+        int h = root.getHeight();
+        if (w == 0 || h == 0) {
+            root.post(this::layoutKeypad);
+            return;
+        }
+        boolean landscape = w > h;
+        FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams) keypadPanel.getLayoutParams();
+        if (landscape) {
+            lp.width = Math.round(w * LANDSCAPE_PANEL_WIDTH_FRAC);
+            lp.height = ViewGroup.LayoutParams.MATCH_PARENT;
+            lp.gravity = (panelOnLeft ? Gravity.START : Gravity.END) | Gravity.TOP;
+        } else {
+            lp.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            lp.height = Math.round(h * PORTRAIT_PANEL_HEIGHT_FRAC);
+            lp.gravity = Gravity.BOTTOM;
+        }
+        lp.setMargins(0, 0, 0, 0);
+        keypadPanel.setLayoutParams(lp);
+
+        // Keep keys out from under a notch / punch-hole (window uses shortEdges cutout mode).
+        int base = dp(8);
+        int padL = base, padT = base, padR = base, padB = base;
+        WindowInsets insets = root.getRootWindowInsets();
+        if (insets != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            DisplayCutout cut = insets.getDisplayCutout();
+            if (cut != null) {
+                padL += cut.getSafeInsetLeft();
+                padR += cut.getSafeInsetRight();
+                padB += cut.getSafeInsetBottom();
+                if (landscape) padT += cut.getSafeInsetTop();
+            }
+        }
+        keypadPanel.setPadding(padL, padT, padR, padB);
+    }
+
+    private int dp(int v) {
+        return Math.round(v * getResources().getDisplayMetrics().density);
     }
 
     private void bumpAutoHide() {
@@ -370,7 +429,10 @@ public class MainActivity extends Activity {
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         // WebView is kept (configChanges); just re-place the button and re-hide bars.
-        root.post(this::applyFabPosition);
+        root.post(() -> {
+            applyFabPosition();
+            if (isKeypadVisible()) layoutKeypad();
+        });
         enterImmersive();
     }
 

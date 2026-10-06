@@ -21,18 +21,11 @@
             android:minWidth="0dp"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
-            android:text="← Back"
+            android:stateListAnimator="@null"
+            android:text="@string/back"
             android:textAllCaps="false"
             android:textColor="@color/white"
             android:textSize="16sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:text="@string/about_desc"
-            android:textColor="@color/white"
-            android:textSize="20sp" />
     </LinearLayout>
 
     <ScrollView
@@ -44,11 +37,14 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingStart="24dp"
+            android:paddingTop="8dp"
+            android:paddingEnd="24dp"
+            android:paddingBottom="24dp">
 
             <ImageView
-                android:layout_width="88dp"
-                android:layout_height="88dp"
+                android:layout_width="96dp"
+                android:layout_height="96dp"
                 android:layout_gravity="center_horizontal"
                 android:contentDescription="@string/app_name"
                 android:src="@mipmap/ic_launcher" />
@@ -60,68 +56,20 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/app_name"
                 android:textColor="@color/white"
-                android:textSize="26sp"
+                android:textSize="28sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/txt_version"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:textColor="@color/text_dim"
-                android:textSize="15sp" />
+            <TextView style="@style/AboutHeading" android:text="@string/howto_title" />
+            <TextView style="@style/AboutBullet" android:text="@string/howto_1" />
+            <TextView style="@style/AboutBullet" android:text="@string/howto_2" />
+            <TextView style="@style/AboutBullet" android:text="@string/howto_3" />
+            <TextView style="@style/AboutBullet" android:text="@string/howto_4" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="4dp"
-                android:text="Made by J T"
-                android:textColor="@color/white"
-                android:textSize="16sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:text="TV page"
-                android:textColor="@color/text_dim"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autoLink="web"
-                android:text="@string/tv_url"
-                android:textColor="@color/white"
-                android:textColorLink="@color/accent"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Source code"
-                android:textColor="@color/text_dim"
-                android:textSize="13sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:autoLink="web"
-                android:text="@string/repo_url"
-                android:textColor="@color/white"
-                android:textColorLink="@color/accent"
-                android:textSize="15sp" />
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:lineSpacingExtra="3dp"
-                android:text="@string/about_howto"
-                android:textColor="@color/white"
-                android:textSize="15sp" />
+            <TextView style="@style/AboutHeading" android:text="@string/about_desc" />
+            <TextView android:id="@+id/txt_credit" style="@style/AboutRow" />
+            <TextView android:id="@+id/txt_version" style="@style/AboutRow" />
+            <TextView android:id="@+id/txt_release" style="@style/AboutRow" />
+            <TextView android:id="@+id/txt_package" style="@style/AboutRow" />
         </LinearLayout>
     </ScrollView>
 </LinearLayout>

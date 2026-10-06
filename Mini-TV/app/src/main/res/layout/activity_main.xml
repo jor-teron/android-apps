@@ -20,68 +20,72 @@
         android:background="@color/black"
         android:visibility="gone" />
 
-    <!-- Keypad panel -->
+    <!-- Keypad panel: size/gravity set in code (portrait: bottom dock, landscape: side dock) -->
     <LinearLayout
         android:id="@+id/keypad_panel"
-        android:layout_width="198dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:background="@drawable/panel_bg"
         android:clickable="true"
         android:orientation="vertical"
-        android:padding="7dp"
+        android:padding="8dp"
         android:visibility="gone">
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="26dp">
+            android:layout_height="32dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical|start"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="8dp"
                 android:text="@string/app_name"
                 android:textColor="@color/text_dim"
-                android:textSize="12sp" />
+                android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/btn_info"
-                android:layout_width="30dp"
-                android:layout_height="26dp"
+                android:layout_width="40dp"
+                android:layout_height="32dp"
                 android:layout_gravity="end|center_vertical"
                 android:background="@drawable/key_bg"
                 android:contentDescription="@string/about_desc"
                 android:gravity="center"
                 android:text="ⓘ"
                 android:textColor="@color/white"
-                android:textSize="16sp" />
+                android:textSize="18sp" />
         </FrameLayout>
 
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <LinearLayout style="@style/PadRow">
             <Button android:id="@+id/key_1" style="@style/PadKey" android:text="1" />
             <Button android:id="@+id/key_2" style="@style/PadKey" android:text="2" />
             <Button android:id="@+id/key_3" style="@style/PadKey" android:text="3" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <LinearLayout style="@style/PadRow">
             <Button android:id="@+id/key_4" style="@style/PadKey" android:text="4" />
             <Button android:id="@+id/key_5" style="@style/PadKey" android:text="5" />
             <Button android:id="@+id/key_6" style="@style/PadKey" android:text="6" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <LinearLayout style="@style/PadRow">
             <Button android:id="@+id/key_7" style="@style/PadKey" android:text="7" />
             <Button android:id="@+id/key_8" style="@style/PadKey" android:text="8" />
             <Button android:id="@+id/key_9" style="@style/PadKey" android:text="9" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <Button android:id="@+id/key_close" style="@style/PadKey" android:text="✕" android:contentDescription="Close keypad" />
+        <LinearLayout style="@style/PadRow">
             <Button android:id="@+id/key_0" style="@style/PadKey" android:text="0" />
-            <Button android:id="@+id/key_ok" style="@style/PadKey" android:text="OK" android:textSize="15sp" />
+            <Button
+                android:id="@+id/key_cancel"
+                style="@style/PadKey"
+                android:layout_weight="2"
+                android:contentDescription="Close keypad"
+                android:text="Cancel"
+                android:textSize="20sp" />
         </LinearLayout>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
-            <Button android:id="@+id/key_ch_down" style="@style/PadKey" android:text="CH ▼" android:textSize="14sp" android:contentDescription="Channel down" />
-            <Button android:id="@+id/key_ch_up" style="@style/PadKey" android:text="CH ▲" android:textSize="14sp" android:contentDescription="Channel up" />
+        <LinearLayout style="@style/PadRow">
+            <Button android:id="@+id/key_ch_up" style="@style/PadKey" android:text="CH▲" android:textSize="20sp" android:contentDescription="Channel up" />
+            <Button android:id="@+id/key_ok" style="@style/PadKey" android:text="OK" android:textSize="22sp" />
+            <Button android:id="@+id/key_ch_down" style="@style/PadKey" android:text="CH▼" android:textSize="20sp" android:contentDescription="Channel down" />
         </LinearLayout>
     </LinearLayout>
 
