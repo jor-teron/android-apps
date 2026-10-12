@@ -34,6 +34,10 @@ public class MotionService extends Service {
     public static volatile int port = 8081;
     private static volatile CameraPipeline pipelineRef;
 
+    public static volatile boolean remoteMode;
+    private RemoteCamServer remoteServer;
+    private RemotePuller puller;
+    private Thread sweeper;
     private CameraPipeline pipeline;
     private MjpegServer server;
     private PowerManager.WakeLock wakeLock;
@@ -80,7 +84,26 @@ public class MotionService extends Service {
             wifiLock.acquire();
         }
 
+        remoteMode = s.remoteMode();
         server = new MjpegServer(s.port());
+        if (remoteMode) {
+            remoteServer = new RemoteCamServer(this, s.cameraName());
+            server.setToken(s.pairToken());
+            server.setApi(remoteServer);
+            final int keep = s.keepAfterSendMin();
+            final RemoteCamServer rs = remoteServer;
+            sweeper = new Thread(() -> {
+                while (!Thread.currentThread().isInterrupted()) {
+                    rs.sweep(keep);
+                    try { Thread.sleep(20000); } catch (InterruptedException e) { return; }
+                }
+            }, "remote-sweeper");
+            sweeper.setDaemon(true);
+            sweeper.start();
+        } else {
+            puller = new RemotePuller(this);
+            puller.start();
+        }
         try {
             server.start();
         } catch (Exception e) {
@@ -109,6 +132,10 @@ public class MotionService extends Service {
             }
             @Override public void onRunning(String i) { info = i; error = ""; updateNotification(); }
         });
+        if (remoteServer != null) {
+            final RemoteCamServer rs = remoteServer;
+            pipeline.setStorage(new ClipStorage(this, "", s.storageLimitMb(), ClipStorage.remoteDir(this), rs::isProtected));
+        }
         pipelineRef = pipeline;
         pipeline.start();
         updateNotification();
@@ -123,13 +150,15 @@ public class MotionService extends Service {
         pipelineRef = null;
         if (pipeline != null) pipeline.stop();
         if (server != null) server.stop();
+        if (puller != null) puller.stop();
+        if (sweeper != null) sweeper.interrupt();
         if (wakeLock != null && wakeLock.isHeld()) wakeLock.release();
         if (wifiLock != null && wifiLock.isHeld()) wifiLock.release();
         super.onDestroy();
     }
 
     private void updateNotification() {
-        String t = state + " - " + streamUrl(this);
+        String t = (remoteMode ? "Remote Cam: " : "") + state + " - " + streamUrl(this);
         if (!error.isEmpty()) t = error;
         if (t.equals(notifText)) return;
         notifText = t;
@@ -156,6 +185,23 @@ public class MotionService extends Service {
                 .setContentIntent(open)
                 .addAction(new Notification.Action.Builder(null, "Stop", stop).build())
                 .build();
+    }
+
+    /** All IPv4 addresses (Wi-Fi/LAN first, then Tailscale 100.x and others). */
+    public static java.util.List<String> allIps() {
+        java.util.List<String> wifi = new java.util.ArrayList<>(), other = new java.util.ArrayList<>();
+        try {
+            for (NetworkInterface ni : Collections.list(NetworkInterface.getNetworkInterfaces())) {
+                if (!ni.isUp() || ni.isLoopback()) continue;
+                for (InetAddress a : Collections.list(ni.getInetAddresses())) {
+                    if (!(a instanceof Inet4Address) || a.isLoopbackAddress() || a.isLinkLocalAddress()) continue;
+                    String ip = a.getHostAddress();
+                    if (ni.getName().startsWith("wlan") || ni.getName().startsWith("eth")) wifi.add(ip); else other.add(ip);
+                }
+            }
+        } catch (Exception ignored) {}
+        wifi.addAll(other);
+        return wifi;
     }
 
     /** http://<wifi-ip>:<port>, preferring wlan interfaces. */

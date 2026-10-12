@@ -32,7 +32,7 @@ public class SettingsActivity extends Activity {
     private static final int PICK_FOLDER = 7;
 
     private SettingsStore s;
-    private EditText name, bitrate, threshold, anaFps, pre, post, gap, port, limit, maxClip;
+    private EditText name, bitrate, threshold, anaFps, pre, post, gap, port, limit, maxClip, keepAfter;
     private CheckBox front;
     private Spinner res, fps, rot;
     private List<String> resValues = new ArrayList<>();
@@ -98,7 +98,14 @@ public class SettingsActivity extends Activity {
         port = field(col, "Stream port (1024-65535)", String.valueOf(s.port()), true);
         limit = field(col, "Storage limit, MB (oldest clips deleted beyond this)", String.valueOf(s.storageLimitMb()), true);
 
-        col.addView(Ui.text(this, "Save folder", 14, Ui.DIM));
+        keepAfter = field(col, "Remote Cam: delete a clip this many minutes after Main confirmed it (0-1440; leave empty or -1 = Never delete)",
+                String.valueOf(s.keepAfterSendMin()), false);
+        keepAfter.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED);
+        Button never = Ui.button(this, "Remote Cam: Never delete sent clips", 0xFFBDBDBD);
+        never.setOnClickListener(v -> keepAfter.setText("-1"));
+        col.addView(never);
+
+        col.addView(Ui.text(this, "Save folder (Main mode; clips from Remote Cams go in a sub folder per camera name)", 14, Ui.DIM));
         folderView = Ui.text(this, "", 15, Ui.TEXT);
         col.addView(folderView);
         showFolder();
@@ -240,6 +247,12 @@ public class SettingsActivity extends Activity {
         catch (Exception x) { return def; }
     }
 
+    private int keepValue() {
+        String t = keepAfter.getText().toString().trim();
+        if (t.isEmpty()) return -1;
+        try { int v = Integer.parseInt(t); return v < 0 ? -1 : Math.min(v, 1440); } catch (Exception e) { return 5; }
+    }
+
     private void save() {
         String n = name.getText().toString().trim();
         s.edit()
@@ -257,6 +270,7 @@ public class SettingsActivity extends Activity {
                 .putInt("maxClipMin", num(maxClip, 10, 1, 120))
                 .putInt("port", num(port, 8081, 1024, 65535))
                 .putInt("storageLimitMb", num(limit, 2048, 50, 1_000_000))
+                .putInt("keepAfterSendMin", keepValue())
                 .putString("folderUri", folderUri)
                 .apply();
     }

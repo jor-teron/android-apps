@@ -36,6 +36,27 @@ public final class SettingsStore {
     public int maxClipMin() { return p.getInt("maxClipMin", 10); }
     public int storageLimitMb() { return p.getInt("storageLimitMb", 2048); }
 
+    /** "main" (default) or "remote". */
+    public String mode() { return p.getString("mode", "main"); }
+    public boolean remoteMode() { return "remote".equals(mode()); }
+    /** Remote Cam: minutes to keep a clip after Main confirmed it; -1 = never delete. */
+    public int keepAfterSendMin() { return p.getInt("keepAfterSendMin", 5); }
+    /** Remote Cam pairing code, created on first use. */
+    public String pairToken() {
+        String t = p.getString("pairToken", "");
+        if (t.isEmpty()) t = newPairToken();
+        return t;
+    }
+    public String newPairToken() {
+        byte[] b = new byte[12];
+        new java.security.SecureRandom().nextBytes(b);
+        StringBuilder sb = new StringBuilder();
+        for (byte x : b) sb.append(String.format("%02x", x));
+        String t = sb.toString();
+        p.edit().putString("pairToken", t).apply();
+        return t;
+    }
+
     public SharedPreferences.Editor edit() { return p.edit(); }
 
     public static int clamp(int v, int lo, int hi) { return Math.max(lo, Math.min(hi, v)); }

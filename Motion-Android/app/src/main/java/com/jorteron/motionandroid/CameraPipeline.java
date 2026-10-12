@@ -91,6 +91,10 @@ public final class CameraPipeline {
         this.cb = cb;
     }
 
+    private ClipStorage storageOverride;
+    /** Remote Cam mode uses its own local clip folder. Call before start(). */
+    public void setStorage(ClipStorage cs) { storageOverride = cs; }
+
     public void setPreviewWanted(boolean v) { previewWanted = v; }
     public byte[] lastJpeg() { return lastJpeg; }
 
@@ -225,7 +229,7 @@ public final class CameraPipeline {
             detector.reset();
 
             if (recorder == null) {
-                recorder = new ClipRecorder(new ClipStorage(ctx, s.folderUri(), s.storageLimitMb()), s.cameraName(),
+                recorder = new ClipRecorder(storageOverride != null ? storageOverride : new ClipStorage(ctx, s.folderUri(), s.storageLimitMb()), s.cameraName(),
                         s.preCaptureMs(), s.postCaptureMs(), s.eventGapS(), s.maxClipMin(), new ClipRecorder.Listener() {
                     @Override public void onClipStarted(String n) { cb.onClipStarted(n); }
                     @Override public void onClipFinished(String n, boolean ok) { cb.onClipFinished(n, ok); }

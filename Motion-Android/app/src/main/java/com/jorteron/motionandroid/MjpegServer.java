@@ -28,9 +28,45 @@ public final class MjpegServer {
     private long seq;
     private final AtomicInteger clients = new AtomicInteger();
 
+    /** Extra endpoints (Remote Cam clip API). Return false if the path is not handled. */
+    public interface Api {
+        boolean handle(String path, java.util.Map<String, String> query, OutputStream out) throws Exception;
+    }
+
+    private volatile String token;
+    private volatile Api api;
+
     public MjpegServer(int port) { this.port = port; }
 
-    public int clientCount() { return clients.get(); }
+    /** Remote Cam mode: every request must carry ?token=... */
+    public void setToken(String t) { token = t; }
+    public void setApi(Api a) { api = a; }
+
+    public static java.util.Map<String, String> parseQuery(String q) {
+        java.util.Map<String, String> m = new java.util.HashMap<>();
+        if (q == null) return m;
+        for (String kv : q.split("&")) {
+            int e = kv.indexOf('=');
+            try {
+                if (e < 0) m.put(java.net.URLDecoder.decode(kv, "UTF-8"), "");
+                else m.put(java.net.URLDecoder.decode(kv.substring(0, e), "UTF-8"), java.net.URLDecoder.decode(kv.substring(e + 1), "UTF-8"));
+            } catch (Exception ignored) {}
+        }
+        return m;
+    }
+
+    static void sendText(OutputStream out, int code, String status, String body) throws Exception {
+        byte[] b = body.getBytes(StandardCharsets.UTF_8);
+        out.write(("HTTP/1.0 " + code + " " + status + "\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: " + b.length
+                + "\r\nConnection: close\r\n\r\n").getBytes(StandardCharsets.US_ASCII));
+        out.write(b);
+        out.flush();
+    }
+
+    private volatile long lastSnapshotMs;
+
+    /** Stream clients, plus one if someone polled /snapshot.jpg in the last 3 s (Main's live view). */
+    public int clientCount() { return clients.get() + (System.currentTimeMillis() - lastSnapshotMs < 3000 ? 1 : 0); }
 
     public void start() throws Exception {
         server = new ServerSocket();
@@ -81,9 +117,23 @@ public final class MjpegServer {
             String[] parts = req.split(" ");
             String path = parts.length > 1 ? parts[1] : "/";
             int q = path.indexOf('?');
+            java.util.Map<String, String> query = parseQuery(q >= 0 ? path.substring(q + 1) : null);
             if (q >= 0) path = path.substring(0, q);
             OutputStream out = sock.getOutputStream();
+            String tk = token;
+            if (tk != null && !java.security.MessageDigest.isEqual(tk.getBytes(StandardCharsets.UTF_8),
+                    String.valueOf(query.get("token")).getBytes(StandardCharsets.UTF_8))) {
+                sendText(out, 401, "Unauthorized", "Pairing code required\r\n");
+                return;
+            }
+            Api a = api;
+            if (a != null && path.startsWith("/api/")) {
+                sock.setSoTimeout(60000);
+                if (!a.handle(path, query, out)) send404(out);
+                return;
+            }
             if (path.equals("/snapshot.jpg")) {
+                lastSnapshotMs = System.currentTimeMillis();
                 byte[] f = waitFrame(-1);
                 if (f == null) { send404(out); return; }
                 out.write(("HTTP/1.0 200 OK\r\nContent-Type: image/jpeg\r\nContent-Length: " + f.length

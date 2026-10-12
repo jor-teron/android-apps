@@ -15,6 +15,7 @@
 
     <application
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:label="Motion Android"
         android:icon="@android:drawable/ic_menu_camera"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
@@ -32,6 +33,15 @@
         <activity
             android:name=".SettingsActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".AddCamActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".ScanActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
 
         <service
             android:name=".MotionService"
