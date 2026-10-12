@@ -3,7 +3,7 @@ package com.jorteron.motionandroid;
 import android.content.Context;
 import android.content.SharedPreferences;
 
-/** All user settings with the v0.1 defaults. Values are read once when the service starts. */
+/** All user settings with the v0.2 defaults. Values are read once when the service starts. */
 public final class SettingsStore {
     public static final String[] RESOLUTIONS = {"320x240", "640x480", "1280x720", "1920x1080"};
     public static final int[] FPS_CHOICES = {10, 15, 24, 30, 60};
@@ -30,6 +30,10 @@ public final class SettingsStore {
     public int streamFps() { return p.getInt("streamFps", 5); }
     /** Empty = default folder (Movies/MotionAndroid). Otherwise a SAF tree URI. */
     public String folderUri() { return p.getString("folderUri", ""); }
+    /** -1 = Auto (phone orientation when Start is pressed), else 0/90/180/270 clockwise on the camera picture. */
+    public int rotation() { return p.getInt("rotation", -1); }
+    public static final int[] ROTATIONS = {-1, 0, 90, 180, 270};
+    public int maxClipMin() { return p.getInt("maxClipMin", 10); }
     public int storageLimitMb() { return p.getInt("storageLimitMb", 2048); }
 
     public SharedPreferences.Editor edit() { return p.edit(); }

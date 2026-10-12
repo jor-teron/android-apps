@@ -38,10 +38,12 @@ public final class Watermark {
     }
 
     private void build(String text, int w, int h) {
-        float size = Math.max(10f, h / 22f);
+        float size = Math.max(10f, Math.min(w, h) / 22f);
         Paint fill = new Paint(Paint.ANTI_ALIAS_FLAG);
         fill.setTypeface(Typeface.MONOSPACE);
         fill.setTextSize(size);
+        float maxW = w * 0.94f; // portrait frames are narrow: shrink to fit
+        if (fill.measureText(text) > maxW) { size = Math.max(8f, size * maxW / fill.measureText(text)); fill.setTextSize(size); }
         fill.setColor(Color.WHITE);
         Paint stroke = new Paint(fill);
         stroke.setStyle(Paint.Style.STROKE);

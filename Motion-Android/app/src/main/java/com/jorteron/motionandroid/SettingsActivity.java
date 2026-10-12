@@ -32,9 +32,9 @@ public class SettingsActivity extends Activity {
     private static final int PICK_FOLDER = 7;
 
     private SettingsStore s;
-    private EditText name, bitrate, threshold, anaFps, pre, post, gap, port, limit;
+    private EditText name, bitrate, threshold, anaFps, pre, post, gap, port, limit, maxClip;
     private CheckBox front;
-    private Spinner res, fps;
+    private Spinner res, fps, rot;
     private List<String> resValues = new ArrayList<>();
     private TextView folderView;
     private String folderUri;
@@ -75,12 +75,26 @@ public class SettingsActivity extends Activity {
         fps.setSelection(sel);
         col.addView(fps);
 
+        col.addView(Ui.text(this, "Rotation (Auto = how the phone is held when you press Start, kept until Stop)", 14, Ui.DIM));
+        rot = new Spinner(this);
+        List<String> rl = new ArrayList<>();
+        int rsel = 0;
+        for (int i = 0; i < SettingsStore.ROTATIONS.length; i++) {
+            int r = SettingsStore.ROTATIONS[i];
+            rl.add(r < 0 ? "Auto" : r + "\u00B0" + (r == 90 ? "  (portrait, back camera)" : r == 0 ? "  (camera native, landscape)" : ""));
+            if (r == s.rotation()) rsel = i;
+        }
+        rot.setAdapter(adapter(rl));
+        rot.setSelection(rsel);
+        col.addView(rot);
+
         bitrate = field(col, "Bitrate, kbps (500-8000)", String.valueOf(s.bitrateKbps()), true);
         threshold = field(col, "Motion threshold, changed pixels on the 320x240 analysis frame", String.valueOf(s.threshold()), true);
         anaFps = field(col, "Motion analysis rate, frames per second (1-15)", String.valueOf(s.analysisFps()), true);
         pre = field(col, "Pre-capture, ms (0-10000)", String.valueOf(s.preCaptureMs()), true);
         post = field(col, "Post-capture, ms (0-30000)", String.valueOf(s.postCaptureMs()), true);
         gap = field(col, "Event gap, seconds (0-300)", String.valueOf(s.eventGapS()), true);
+        maxClip = field(col, "Maximum clip length, minutes (1-120; a new clip starts after this)", String.valueOf(s.maxClipMin()), true);
         port = field(col, "Stream port (1024-65535)", String.valueOf(s.port()), true);
         limit = field(col, "Storage limit, MB (oldest clips deleted beyond this)", String.valueOf(s.storageLimitMb()), true);
 
@@ -239,6 +253,8 @@ public class SettingsActivity extends Activity {
                 .putInt("preCaptureMs", num(pre, 1000, 0, 10000))
                 .putInt("postCaptureMs", num(post, 500, 0, 30000))
                 .putInt("eventGapS", num(gap, 30, 0, 300))
+                .putInt("rotation", SettingsStore.ROTATIONS[Math.max(0, rot.getSelectedItemPosition())])
+                .putInt("maxClipMin", num(maxClip, 10, 1, 120))
                 .putInt("port", num(port, 8081, 1024, 65535))
                 .putInt("storageLimitMb", num(limit, 2048, 50, 1_000_000))
                 .putString("folderUri", folderUri)

@@ -1,6 +1,6 @@
 # Motion Android
 
-v0.1 — a small Android alternative to the Linux `motion` daemon. It turns a phone (for example a spare one) into a motion-triggered video camera with a live browser stream.
+v0.2 — a small Android alternative to the Linux `motion` daemon. It turns a phone (for example a spare one) into a motion-triggered video camera with a live browser stream.
 
 ## Features
 - **Motion detection:** compares the luma of consecutive frames, downscaled to about 320x240. A pixel counts as changed if its brightness differs by more than 24 levels, with a simple despeckle filter. Motion fires when changed pixels >= threshold.
@@ -10,6 +10,8 @@ v0.1 — a small Android alternative to the Linux `motion` daemon. It turns a ph
   - Frames are written while motion continues and for *post-capture* ms after the last motion.
   - The file stays open until *event gap* seconds pass with no motion. New motion inside the gap continues the **same file**, again with pre-capture. As in `motion`, the quiet part of the gap is skipped, so the video jumps over the idle time.
 - **Watermark:** the camera name and `YYYY-MM-DD HH:MM:SS` in white with a black outline, bottom-left. It is burned into the recorded video and the stream.
+- **Rotation:** Auto (default) reads how the phone is held when you press Start and keeps it until Stop, so a clip never flips halfway. Manual 0°/90°/180°/270° (clockwise on the camera picture; 90° = portrait on most back cameras) overrides it, e.g. for a phone on a mount or lying flat. Frames are turned upright before encoding, so clips, the stream and the watermark are all upright; 90°/270° swap width and height (640x480 becomes 480x640). Motion detection is unaffected.
+- **Maximum clip length:** default 10 minutes, editable. When a clip reaches it, the file is closed at the next keyframe and a new clip starts immediately with the same event, so no frames are lost.
 - **Filenames:** `<CameraName>_YYYY_MM_DD_HH-MM-SS.mp4`, using the event start time, e.g. `Front_Door_2026_10_12_09-13-45.mp4`. Spaces become underscores.
 - **Live stream:** MJPEG over HTTP, with no password and multiple clients allowed.
 - **Background:** a foreground service (type camera) with a partial wake lock and a Wi-Fi lock. It keeps running with the screen off. Use Start/Stop in the app or Stop in the notification.
@@ -27,6 +29,8 @@ v0.1 — a small Android alternative to the Linux `motion` daemon. It turns a ph
 | Pre-capture | 1000 ms | 0-10000 |
 | Post-capture | 500 ms | 0-30000 |
 | Event gap | 30 s | 0-300 |
+| Rotation | Auto | Auto, 0°, 90°, 180°, 270° |
+| Maximum clip length | 10 min | 1-120 |
 | Stream port | 8081 | 1024-65535 |
 | Storage limit | 2048 MB | oldest clips are deleted beyond this |
 
@@ -42,7 +46,6 @@ Press Start, then open the URL shown on the main screen, e.g. `http://192.168.1.
 In VLC, use Media → Open Network Stream → `http://IP:8081/stream`.
 
 ## Notes
-- Video is recorded in the camera sensor's native landscape orientation. Mount the phone in landscape for upright video.
 - In Settings, use "Battery optimisation" to exempt the app, so aggressive battery savers don't kill it.
 - Frames are processed on the CPU. 640x480 at 30 fps is the target; 1080p/60 may drop frames on slower phones.
 

@@ -35,6 +35,7 @@ public class MainActivity extends Activity {
         super.onCreate(b);
         LinearLayout col = Ui.column(this);
         col.addView(Ui.text(this, "Motion Android", 26, Ui.ACCENT));
+        col.addView(Ui.text(this, "v0.2", 13, Ui.DIM));
         status = Ui.text(this, "", 20, Ui.TEXT);
         url = Ui.text(this, "", 18, Ui.TEXT);
         url.setTextIsSelectable(true);

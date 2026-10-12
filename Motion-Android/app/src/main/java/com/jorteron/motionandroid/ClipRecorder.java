@@ -27,6 +27,8 @@ import java.util.Locale;
  *    resumes writing into the SAME file (with pre-capture again, starting at a keyframe).
  *    Frames in the quiet part of the gap are skipped, exactly like motion's movie output, so
  *    the player jumps over the idle time.
+ *  - A clip longer than the maximum clip length is split at the next keyframe; the event continues
+ *    in a new file with no lost frames.
  *  - Event gap 0 means the clip ends right after post-capture.
  */
 public final class ClipRecorder {
@@ -45,7 +47,7 @@ public final class ClipRecorder {
 
     private final ClipStorage storage;
     private final String camName;
-    private final long preUs, postUs, gapUs;
+    private final long preUs, postUs, gapUs, maxUs;
     private final Listener listener;
     private final ArrayDeque<Frame> ring = new ArrayDeque<>();
     private final SimpleDateFormat nameFmt = new SimpleDateFormat("yyyy_MM_dd_HH-mm-ss", Locale.US);
@@ -60,12 +62,13 @@ public final class ClipRecorder {
     private int written;
     private final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 
-    public ClipRecorder(ClipStorage storage, String camName, int preMs, int postMs, int gapS, Listener l) {
+    public ClipRecorder(ClipStorage storage, String camName, int preMs, int postMs, int gapS, int maxClipMin, Listener l) {
         this.storage = storage;
         this.camName = SettingsStore.fileSafeName(camName);
         this.preUs = preMs * 1000L;
         this.postUs = postMs * 1000L;
         this.gapUs = gapS * 1_000_000L;
+        this.maxUs = Math.max(1, maxClipMin) * 60_000_000L;
         this.listener = l;
     }
 
@@ -102,6 +105,8 @@ public final class ClipRecorder {
 
         if (eventOpen) {
             if (writing) {
+                // Maximum clip length: split at a keyframe, the new file starts with this frame (no gap).
+                if (f.key && basePts >= 0 && f.pts - basePts >= maxUs) rollover();
                 write(f);
                 if (lastMotionUs >= 0 && f.pts > lastMotionUs + postUs) writing = false; // post-capture done
             }
@@ -184,9 +189,14 @@ public final class ClipRecorder {
         return true;
     }
 
-    public void closeClip() {
-        if (!eventOpen) return;
-        eventOpen = false; writing = false;
+    /** Finish the current file and open the next one, keeping the event open. */
+    private void rollover() {
+        boolean ok = finishFile();
+        if (!openClip()) { eventOpen = false; writing = false; }
+        if (!ok) Log.w(TAG, "rollover: previous file empty");
+    }
+
+    private boolean finishFile() {
         boolean ok = written > 0;
         try {
             if (ok) muxer.stop();
@@ -198,5 +208,12 @@ public final class ClipRecorder {
         out = null;
         listener.onClipFinished(n, ok);
         if (ok) new Thread(storage::enforceLimit, "storage-limit").start();
+        return ok;
+    }
+
+    public void closeClip() {
+        if (!eventOpen) return;
+        eventOpen = false; writing = false;
+        finishFile();
     }
 }
